@@ -14,7 +14,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <spring-version>4.0.0.RELEASE</spring-version>
-
+        <repositoryAddress>192.168.4.13:8081</repositoryAddress>
     </properties>
     <artifactId>webmagic-parent</artifactId>
     <name>webmagic-parent</name>
@@ -338,13 +338,22 @@
             <distributionManagement>
                 <snapshotRepository>
                     <id>sonatype-nexus-snapshots</id>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+                    <url>https://${repositoryAddress}/content/repositories/snapshots/</url>
                 </snapshotRepository>
                 <repository>
-                    <id>sonatype-nexus-staging</id>
-                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                    <id>releases</id>
+                    <name>Releases</name>
+                    <url>http://${repositoryAddress}/nexus/content/repositories/releases</url>
                 </repository>
             </distributionManagement>
         </profile>
     </profiles>
+
+    <distributionManagement>
+        <repository>
+            <id>releases</id>
+            <name>Releases</name>
+            <url>http://${repositoryAddress}/nexus/content/repositories/releases</url>
+        </repository>
+    </distributionManagement>
 </project>
