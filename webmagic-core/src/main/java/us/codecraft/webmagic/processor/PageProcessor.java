@@ -26,6 +26,14 @@ public interface PageProcessor {
      */
     public void process(Page page);
 
+    default void processStatusCodeError(Page page) {
+
+    }
+
+    default void processFatalError(){
+
+    }
+
     /**
      * get the site settings
      *

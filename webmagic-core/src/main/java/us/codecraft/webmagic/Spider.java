@@ -303,7 +303,7 @@ public class Spider implements Runnable, Task {
     public void run() {
         checkRunningStat();
         initComponent();
-        logger.info("Spider {} started!",getUUID());
+        logger.info("Spider {} started!", getUUID());
         while (!Thread.currentThread().isInterrupted() && stat.get() == STAT_RUNNING) {
             final Request request = scheduler.poll(this);
             if (request == null) {
@@ -402,15 +402,23 @@ public class Spider implements Runnable, Task {
 
     private void processRequest(Request request) {
         Page page = downloader.download(request, this);
-        if (page.isDownloadSuccess()){
-            onDownloadSuccess(request, page);
+        String rawText = page.getRawText();
+        int statusCode = page.getStatusCode();
+        if (page.isDownloadSuccess()) {
+            try {
+                onDownloadSuccess(request, page);
+            }catch (Exception e){
+                logger.error("process request error, statusCode: {}, rawText: {}", statusCode, rawText);
+                throw e;
+            }
         } else {
             onDownloaderFail(request);
+            pageProcessor.processFatalError();
         }
     }
 
     private void onDownloadSuccess(Request request, Page page) {
-        if (site.getAcceptStatCode().contains(page.getStatusCode())){
+        if (site.getAcceptStatCode().contains(page.getStatusCode())) {
             pageProcessor.process(page);
             extractAndAddRequests(page, spawnUrl);
             if (!page.getResultItems().isSkip()) {
@@ -420,6 +428,7 @@ public class Spider implements Runnable, Task {
             }
         } else {
             logger.info("page status code error, page {} , code: {}", request.getUrl(), page.getStatusCode());
+            pageProcessor.processStatusCodeError(page);
         }
         sleep(site.getSleepTime());
         return;
@@ -452,7 +461,7 @@ public class Spider implements Runnable, Task {
         try {
             Thread.sleep(time);
         } catch (InterruptedException e) {
-            logger.error("Thread interrupted when sleep",e);
+            logger.error("Thread interrupted when sleep", e);
         }
     }
 
@@ -501,13 +510,13 @@ public class Spider implements Runnable, Task {
      * Download urls synchronizing.
      *
      * @param urls urls
-     * @param <T> type of process result
+     * @param <T>  type of process result
      * @return list downloaded
      */
     public <T> List<T> getAll(Collection<String> urls) {
         destroyWhenExit = false;
         spawnUrl = false;
-        if (startRequests!=null){
+        if (startRequests != null) {
             startRequests.clear();
         }
         for (Request request : UrlUtils.convertToRequests(urls)) {
@@ -604,7 +613,7 @@ public class Spider implements Runnable, Task {
      * start with more than one threads
      *
      * @param executorService executorService to run the spider
-     * @param threadNum threadNum
+     * @param threadNum       threadNum
      * @return this
      */
     public Spider thread(ExecutorService executorService, int threadNum) {
